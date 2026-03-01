@@ -927,9 +927,143 @@ function SetupWizard({ onComplete }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// DATASET STEP
+// TIER BADGE COMPONENT
+// ══════════════════════════════════════════════════════════════
+function TierBadge({ tier }) {
+  const tierConfig = {
+    1: { icon: "★", label: "STAR", color: C.gold },
+    2: { icon: "⬡", label: "SHIELD", color: C.orange },
+    3: { icon: "🏆", label: "TROPHY", color: C.red },
+  };
+  
+  const config = tierConfig[tier] || tierConfig[1];
+  
+  return (
+    <div style={{
+      position: "absolute",
+      top: 12,
+      right: 12,
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      background: `${config.color}22`,
+      border: `1px solid ${config.color}`,
+      borderRadius: 4,
+      padding: "4px 8px",
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: 1,
+      color: config.color,
+      textShadow: `0 0 10px ${config.color}66`,
+    }}>
+      <span style={{ fontSize: 14 }}>{config.icon}</span>
+      <span>TIER {tier}</span>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATASET CARD COMPONENT
+// ══════════════════════════════════════════════════════════════
+function DatasetCard({ dataset, selected, onSelect }) {
+  // Map CHALLENGE fields to dataset structure
+  const tier = dataset.level;
+  const name = dataset.name;
+  const agency = dataset.subtitle;
+  const description = dataset.description;
+  const sampleQuery = dataset.dataset?.trim().split("\n").slice(0, 4).join("\n") || "";
+  
+  return (
+    <div
+      onClick={() => onSelect(dataset)}
+      style={{
+        background: selected ? `${C.accent}11` : C.panel,
+        border: `2px solid ${selected ? C.accent : C.border}`,
+        borderRadius: 8,
+        padding: 20,
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        position: "relative",
+        boxShadow: selected ? `0 0 20px ${C.accent}44, inset 0 0 30px ${C.accent}11` : "none",
+        minHeight: 180,
+      }}
+    >
+      <TierBadge tier={tier} />
+      
+      <div style={{
+        fontFamily: "'Orbitron', monospace",
+        fontSize: 13,
+        fontWeight: 700,
+        color: selected ? C.accent : C.text,
+        letterSpacing: 2,
+        marginBottom: 8,
+        marginRight: 80, // Space for tier badge
+      }}>
+        {name}
+      </div>
+      
+      <div style={{
+        fontSize: 10,
+        color: C.muted,
+        marginBottom: 12,
+        letterSpacing: 1,
+      }}>
+        {agency}
+      </div>
+      
+      <div style={{
+        fontSize: 11,
+        color: C.text,
+        lineHeight: 1.5,
+        marginBottom: 12,
+        opacity: 0.9,
+      }}>
+        {description}
+      </div>
+      
+      {sampleQuery && (
+        <div style={{
+          background: C.bg,
+          border: `1px solid ${C.border}`,
+          borderRadius: 4,
+          padding: 8,
+          fontSize: 9,
+          color: C.dim,
+          fontFamily: "'Share Tech Mono', monospace",
+          maxHeight: 60,
+          overflow: "hidden",
+        }}>
+          <div style={{ color: C.accent, marginBottom: 4, letterSpacing: 1 }}>SAMPLE DATA:</div>
+          {sampleQuery}
+        </div>
+      )}
+      
+      {selected && (
+        <div style={{
+          position: "absolute",
+          bottom: 12,
+          right: 12,
+          color: C.accent,
+          fontSize: 10,
+          letterSpacing: 2,
+        }}>
+          ● SELECTED
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATASET STEP (UPDATED)
 // ══════════════════════════════════════════════════════════════
 function DatasetStep({ selectedDataset, onSelect }) {
+  const { selectedDataset: ctxDataset, setSelectedDataset } = useTournament();
+  
+  // Use either prop or context
+  const dataset = selectedDataset || ctxDataset;
+  const selectFn = onSelect || setSelectedDataset;
+  
   return (
     <div>
       <div style={{ fontFamily: "'Orbitron', monospace", fontSize: 16, color: C.accent, letterSpacing: 3, marginBottom: 8 }}>
@@ -939,36 +1073,20 @@ function DatasetStep({ selectedDataset, onSelect }) {
         Choose the challenge dataset for your tournament
       </div>
       
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Responsive card grid with CSS Grid auto-fit */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+        gap: 16,
+        marginBottom: 24,
+      }}>
         {CHALLENGES.map(c => (
-          <div
+          <DatasetCard
             key={c.id}
-            onClick={() => onSelect(c)}
-            style={{
-              background: selectedDataset?.id === c.id ? `${C.accent}11` : C.panel,
-              border: `1px solid ${selectedDataset?.id === c.id ? C.accent : C.border}`,
-              padding: "16px 20px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              position: "relative",
-            }}
-          >
-            {selectedDataset?.id === c.id && (
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: C.accent }} />
-            )}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, color: selectedDataset?.id === c.id ? C.accent : C.text }}>
-                  LVL {c.level} — {c.name}
-                </div>
-                <div style={{ fontSize: 10, color: C.muted, marginTop: 4 }}>{c.subtitle}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 10, color: getDiffColor(c.difficulty) }}>{c.difficulty}</div>
-                <div style={{ fontSize: 10, color: C.gold, marginTop: 4 }}>⬡ {c.tokens}</div>
-              </div>
-            </div>
-          </div>
+            dataset={c}
+            selected={dataset?.id === c.id}
+            onSelect={selectFn}
+          />
         ))}
       </div>
     </div>

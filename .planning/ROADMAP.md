@@ -60,6 +60,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Setup & Dataset Selection | 0/4 | Not started | - |
+| 1. Setup & Dataset Selection | 0/4 | Ready to execute | - |
 | 2. Arena Execution & Scoring | 0/TBD | Not started | - |
 | 3. Delivery & Session Results | 0/TBD | Not started | - |

@@ -26,7 +26,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Operator can browse curated datasets with tier, agency, and a sample query, and select exactly one for a tournament.
   2. Operator can configure four agent slots (identity, provider/model) and add per-agent API keys and optional prompt suffixes.
   3. Title and Setup screens are reachable and API keys are not persisted beyond the current session.
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 01-01-PLAN.md — Setup Wizard & Session Context
+- [ ] 01-02-PLAN.md — Dataset Selection UI
+- [ ] 01-03-PLAN.md — Agent Configuration UI
+- [ ] 01-04-PLAN.md — Review & Launch Flow
 
 ### Phase 2: Arena Execution & Scoring
 **Goal**: Operators can run a full 4-agent tournament through Build/Attack/Interrogate with reliable scoring and report cards.
@@ -56,6 +60,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Setup & Dataset Selection | 0/TBD | Not started | - |
+| 1. Setup & Dataset Selection | 0/4 | Not started | - |
 | 2. Arena Execution & Scoring | 0/TBD | Not started | - |
 | 3. Delivery & Session Results | 0/TBD | Not started | - |

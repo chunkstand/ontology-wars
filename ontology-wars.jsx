@@ -46,6 +46,7 @@ function TournamentProvider({ children }) {
     selectedDataset,
     setSelectedDataset,
     agents,
+    setAgents,
     selectedAgentIds,
     setSelectedAgentIds,
     agentApiKeys,
@@ -849,7 +850,7 @@ function SetupWizard({ onComplete }) {
   const canProceed = () => {
     switch (currentStep) {
       case 0: return selectedDataset !== null;
-      case 1: return selectedAgentIds.length >= 1;
+      case 1: return selectedAgentIds.filter(id => agentApiKeys[id] && agentApiKeys[id].length > 0).length >= 2;
       case 2: return true;
       case 3: return true;
       default: return false;
@@ -1094,10 +1095,412 @@ function DatasetStep({ selectedDataset, onSelect }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// AGENTS STEP
+// PASSWORD INPUT COMPONENT
+// ══════════════════════════════════════════════════════════════
+function PasswordInput({ value, onChange, placeholder = "Enter API key" }) {
+  const [show, setShow] = useState(false);
+  
+  return (
+    <div>
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        background: C.bg, 
+        border: `1px solid ${C.border}`,
+        borderRadius: 4,
+        overflow: "hidden",
+      }}>
+        <div style={{ padding: "8px 12px", color: C.dim, fontSize: 12 }}>
+          🔒
+        </div>
+        <input
+          type={show ? "text" : "password"}
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          style={{
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            padding: "8px 0",
+            fontSize: 11,
+            color: C.text,
+            fontFamily: "inherit",
+            outline: "none",
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          style={{
+            background: "transparent",
+            border: "none",
+            padding: "8px 12px",
+            color: C.muted,
+            fontSize: 10,
+            cursor: "pointer",
+            letterSpacing: 1,
+          }}
+        >
+          {show ? "HIDE" : "SHOW"}
+        </button>
+      </div>
+      <div style={{ fontSize: 8, color: C.dim, marginTop: 6, letterSpacing: 1 }}>
+        🔑 Keys stored in session only — clears on refresh
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// AGENT CONFIG CARD COMPONENT
+// ══════════════════════════════════════════════════════════════
+function AgentConfigCard({ agent, isConfigured, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        background: C.panel,
+        border: `2px solid ${isConfigured ? agent.color : C.border}`,
+        borderRadius: 8,
+        padding: 16,
+        cursor: "pointer",
+        transition: "all 0.2s",
+        textAlign: "center",
+        position: "relative",
+        boxShadow: isConfigured ? `0 0 15px ${agent.color}33` : "none",
+      }}
+    >
+      {isConfigured && (
+        <div style={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background: C.green,
+          boxShadow: `0 0 8px ${C.green}`,
+        }} />
+      )}
+      <div style={{ fontSize: 32, color: agent.color, marginBottom: 8 }}>{agent.icon}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: C.text }}>
+        {agent.name}
+      </div>
+      {agent.provider && (
+        <div style={{ 
+          fontSize: 8, 
+          color: agent.color, 
+          marginTop: 8, 
+          letterSpacing: 1,
+          background: `${agent.color}22`,
+          padding: "4px 8px",
+          borderRadius: 4,
+          display: "inline-block",
+        }}>
+          {agent.provider.toUpperCase()}
+        </div>
+      )}
+      {!isConfigured && (
+        <div style={{ fontSize: 8, color: C.dim, marginTop: 8, letterSpacing: 1 }}>
+          CLICK TO CONFIGURE
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// AGENT MODAL COMPONENT
+// ══════════════════════════════════════════════════════════════
+const PROVIDERS = ["Anthropic", "OpenAI", "Google"];
+const MODELS_BY_PROVIDER = {
+  Anthropic: ["claude-sonnet-4-20250514", "claude-opus-4-20250514", "claude-3-5-sonnet"],
+  OpenAI: ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],
+  Google: ["gemini-1.5-pro", "gemini-1.5-flash"],
+};
+
+function AgentModal({ isOpen, agent, onClose, onSave }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    icon: "⬡",
+    color: C.purple,
+    provider: "Anthropic",
+    model: "claude-sonnet-4-20250514",
+    apiKey: "",
+    promptSuffix: "",
+  });
+  
+  const dialogRef = useRef(null);
+  
+  useEffect(() => {
+    if (isOpen && agent) {
+      setFormData({
+        name: agent.name || "",
+        icon: agent.icon || "⬡",
+        color: agent.color || C.purple,
+        provider: agent.provider || "Anthropic",
+        model: agent.model || "claude-sonnet-4-20250514",
+        apiKey: agent.apiKey || "",
+        promptSuffix: agent.promptSuffix || "",
+      });
+      if (dialogRef.current) {
+        dialogRef.current.showModal();
+      }
+    } else if (dialogRef.current) {
+      dialogRef.current.close();
+    }
+  }, [isOpen, agent]);
+  
+  const handleSave = () => {
+    onSave(formData);
+    onClose();
+  };
+  
+  const handleClose = () => {
+    onClose();
+  };
+  
+  const availableModels = MODELS_BY_PROVIDER[formData.provider] || [];
+  
+  return (
+    <dialog
+      ref={dialogRef}
+      onClick={(e) => {
+        if (e.target === dialogRef.current) handleClose();
+      }}
+      style={{
+        background: C.panel,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: 0,
+        color: C.text,
+        maxWidth: 480,
+        width: "90%",
+        boxShadow: `0 0 40px rgba(0,0,0,0.5)`,
+      }}
+    >
+      <div style={{ padding: 24 }}>
+        <div style={{ fontFamily: "'Orbitron', monospace", fontSize: 14, color: C.accent, letterSpacing: 2, marginBottom: 20 }}>
+          CONFIGURE AGENT
+        </div>
+        
+        {/* Name */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 10, color: C.muted, display: "block", marginBottom: 6, letterSpacing: 1 }}>NAME</label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            style={{
+              width: "100%",
+              background: C.bg,
+              border: `1px solid ${C.border}`,
+              padding: "10px 12px",
+              fontSize: 12,
+              color: C.text,
+              fontFamily: "inherit",
+              borderRadius: 4,
+            }}
+          />
+        </div>
+        
+        {/* Icon picker */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 10, color: C.muted, display: "block", marginBottom: 6, letterSpacing: 1 }}>ICON</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {["⬡", "⬟", "⬢", "◉", "◈", "⬣", "◇", "◆"].map((icon) => (
+              <button
+                key={icon}
+                onClick={() => setFormData({ ...formData, icon })}
+                style={{
+                  width: 36,
+                  height: 36,
+                  background: formData.icon === icon ? `${formData.color}22` : C.bg,
+                  border: `1px solid ${formData.icon === icon ? formData.color : C.border}`,
+                  borderRadius: 4,
+                  fontSize: 18,
+                  color: formData.icon === icon ? formData.color : C.dim,
+                  cursor: "pointer",
+                }}
+              >
+                {icon}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Color picker */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 10, color: C.muted, display: "block", marginBottom: 6, letterSpacing: 1 }}>COLOR</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[C.purple, C.green, C.orange, C.accent, C.gold, C.red].map((color) => (
+              <button
+                key={color}
+                onClick={() => setFormData({ ...formData, color })}
+                style={{
+                  width: 28,
+                  height: 28,
+                  background: color,
+                  border: `2px solid ${formData.color === color ? C.text : "transparent"}`,
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* Provider dropdown */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 10, color: C.muted, display: "block", marginBottom: 6, letterSpacing: 1 }}>PROVIDER</label>
+          <select
+            value={formData.provider}
+            onChange={(e) => setFormData({ ...formData, provider: e.target.value, model: MODELS_BY_PROVIDER[e.target.value]?.[0] || "" })}
+            style={{
+              width: "100%",
+              background: C.bg,
+              border: `1px solid ${C.border}`,
+              padding: "10px 12px",
+              fontSize: 12,
+              color: C.text,
+              fontFamily: "inherit",
+              borderRadius: 4,
+            }}
+          >
+            {PROVIDERS.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Model dropdown */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 10, color: C.muted, display: "block", marginBottom: 6, letterSpacing: 1 }}>MODEL</label>
+          <select
+            value={formData.model}
+            onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+            style={{
+              width: "100%",
+              background: C.bg,
+              border: `1px solid ${C.border}`,
+              padding: "10px 12px",
+              fontSize: 12,
+              color: C.text,
+              fontFamily: "inherit",
+              borderRadius: 4,
+            }}
+          >
+            {availableModels.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+        
+        {/* API Key */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 10, color: C.muted, display: "block", marginBottom: 6, letterSpacing: 1 }}>API KEY</label>
+          <PasswordInput
+            value={formData.apiKey}
+            onChange={(apiKey) => setFormData({ ...formData, apiKey })}
+            placeholder="sk-ant-... or sk-..."
+          />
+        </div>
+        
+        {/* Prompt Suffix */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ fontSize: 10, color: C.muted, display: "block", marginBottom: 6, letterSpacing: 1 }}>PROMPT SUFFIX (OPTIONAL)</label>
+          <textarea
+            value={formData.promptSuffix}
+            onChange={(e) => setFormData({ ...formData, promptSuffix: e.target.value })}
+            placeholder="Additional instructions to append to system prompt..."
+            rows={3}
+            style={{
+              width: "100%",
+              background: C.bg,
+              border: `1px solid ${C.border}`,
+              padding: "10px 12px",
+              fontSize: 11,
+              color: C.text,
+              fontFamily: "inherit",
+              borderRadius: 4,
+              resize: "vertical",
+            }}
+          />
+        </div>
+        
+        {/* Buttons */}
+        <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+          <button
+            onClick={handleClose}
+            className="btn"
+            style={{ borderColor: C.dim, color: C.dim }}
+          >
+            <span>CANCEL</span>
+          </button>
+          <button
+            onClick={handleSave}
+            className="btn btn-gold"
+          >
+            <span>SAVE</span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// AGENTS STEP (UPDATED)
 // ══════════════════════════════════════════════════════════════
 function AgentsStep({ selectedAgentIds, onToggle, agentApiKeys, setAgentApiKeys }) {
-  const { agents } = useTournament();
+  const { agents, setAgents, agentPromptSuffixes, setAgentPromptSuffixes } = useTournament();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingAgentIdx, setEditingAgentIdx] = useState(null);
+  
+  // Check if agent is configured (has API key)
+  const isAgentConfigured = (idx) => !!agentApiKeys[idx];
+  
+  const handleAgentClick = (idx) => {
+    setEditingAgentIdx(idx);
+    setModalOpen(true);
+  };
+  
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setEditingAgentIdx(null);
+  };
+  
+  const handleModalSave = (formData) => {
+    // Update agent configuration
+    const updatedAgents = [...agents];
+    updatedAgents[editingAgentIdx] = {
+      ...updatedAgents[editingAgentIdx],
+      name: formData.name,
+      icon: formData.icon,
+      color: formData.color,
+      provider: formData.provider,
+      model: formData.model,
+    };
+    setAgents(updatedAgents);
+    
+    // Update API key
+    if (formData.apiKey) {
+      setAgentApiKeys(prev => ({ ...prev, [editingAgentIdx]: formData.apiKey }));
+    }
+    
+    // Update prompt suffix
+    if (formData.promptSuffix) {
+      setAgentPromptSuffixes(prev => ({ ...prev, [editingAgentIdx]: formData.promptSuffix }));
+    }
+    
+    // Auto-select agent if not already selected
+    if (!selectedAgentIds.includes(editingAgentIdx) && formData.apiKey) {
+      onToggle(editingAgentIdx);
+    }
+  };
+  
+  const configuredCount = selectedAgentIds.filter(idx => isAgentConfigured(idx)).length;
   
   return (
     <div>
@@ -1105,65 +1508,62 @@ function AgentsStep({ selectedAgentIds, onToggle, agentApiKeys, setAgentApiKeys 
         CONFIGURE AGENTS
       </div>
       <div style={{ fontSize: 11, color: C.muted, marginBottom: 24 }}>
-        Select 1-4 agents to compete in the tournament
+        Configure your agents with API keys to compete in the tournament (minimum 2 required)
       </div>
       
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+      {/* 2x2 Agent Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
         {agents.map((agent, idx) => (
-          <div
+          <AgentConfigCard
             key={agent.name}
-            onClick={() => onToggle(idx)}
-            style={{
-              background: selectedAgentIds.includes(idx) ? `${agent.color}11` : C.panel,
-              border: `1px solid ${selectedAgentIds.includes(idx) ? agent.color : C.border}`,
-              padding: 16,
-              cursor: "pointer",
-              transition: "all 0.2s",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: 28, color: agent.color, marginBottom: 8 }}>{agent.icon}</div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: selectedAgentIds.includes(idx) ? agent.color : C.text }}>
-              {agent.name}
-            </div>
-            <div style={{ fontSize: 9, color: C.muted, marginTop: 4 }}>{agent.personality}</div>
-            {selectedAgentIds.includes(idx) && (
-              <div style={{ fontSize: 8, color: agent.color, marginTop: 8, letterSpacing: 2 }}>● SELECTED</div>
-            )}
-          </div>
+            agent={agent}
+            isConfigured={isAgentConfigured(idx)}
+            onClick={() => handleAgentClick(idx)}
+          />
         ))}
       </div>
       
-      {/* API Keys section */}
-      <div style={{ background: C.panel, border: `1px solid ${C.border}`, padding: 16 }}>
-        <div style={{ fontSize: 10, letterSpacing: 3, color: C.gold, marginBottom: 12 }}>AGENT API KEYS</div>
-        <div style={{ fontSize: 9, color: C.muted, marginBottom: 12 }}>
-          Optional: Add custom API keys per agent (defaults to global ANTHROPIC_API key)
-        </div>
-        
-        {selectedAgentIds.map(idx => (
-          <div key={idx} style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 9, color: C.text, display: "block", marginBottom: 4 }}>
-              {agents[idx].name} API Key
-            </label>
-            <input
-              type="password"
-              value={agentApiKeys[idx] || ""}
-              onChange={(e) => setAgentApiKeys(prev => ({ ...prev, [idx]: e.target.value }))}
-              placeholder="sk-ant-..."
-              style={{
-                width: "100%",
-                background: C.bg,
-                border: `1px solid ${C.border}`,
-                padding: "8px 12px",
-                fontSize: 10,
-                color: C.text,
-                fontFamily: "inherit",
-              }}
-            />
+      {/* Configuration status */}
+      <div style={{ 
+        background: configuredCount >= 2 ? `${C.green}11` : `${C.orange}11`,
+        border: `1px solid ${configuredCount >= 2 ? C.green : C.orange}`,
+        borderRadius: 8,
+        padding: 16,
+        marginBottom: 24,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ 
+            width: 32, 
+            height: 32, 
+            borderRadius: "50%", 
+            background: configuredCount >= 2 ? C.green : C.orange,
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center",
+            color: C.bg,
+            fontSize: 14,
+            fontWeight: 700,
+          }}>
+            {configuredCount}
           </div>
-        ))}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>
+              {configuredCount >= 2 ? "READY TO LAUNCH" : "CONFIGURE MORE AGENTS"}
+            </div>
+            <div style={{ fontSize: 10, color: C.muted }}>
+              {configuredCount} of {selectedAgentIds.length} selected agents configured with API keys
+            </div>
+          </div>
+        </div>
       </div>
+      
+      {/* Agent Modal */}
+      <AgentModal
+        isOpen={modalOpen}
+        agent={editingAgentIdx !== null ? agents[editingAgentIdx] : null}
+        onClose={handleModalClose}
+        onSave={handleModalSave}
+      />
     </div>
   );
 }

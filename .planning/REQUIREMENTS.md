@@ -67,14 +67,14 @@ Requirements for initial release. Each maps to roadmap phases.
 ### UI Screens
 
 - [ ] **UI-01**: Title screen links to Setup, Arena, Leaderboard, and API Docs
-- [ ] **UI-02**: Setup screen includes dataset selection, agent configuration, scoring weights, webhook URL
+- [x] **UI-02**: Setup screen includes dataset selection, agent configuration, scoring weights, webhook URL
 - [ ] **UI-03**: Arena screen shows live phase indicator, agent cards, terminal logs, scores, and report cards
 - [ ] **UI-04**: Leaderboard screen includes rankings and Vault tab
 - [ ] **UI-05**: API Docs screen shows Push API and custom endpoint contracts
 
 ### Security & Reliability
 
-- [ ] **SEC-01**: API keys are never persisted to localStorage/sessionStorage
+- [x] **SEC-01**: API keys are never persisted to localStorage/sessionStorage
 - [ ] **REL-01**: Model call timeout of 30s; timed-out phase component scores 0
 - [ ] **REL-02**: JSON parse failures never crash match and are logged in agent terminal
 
@@ -158,11 +158,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LEAD-01 | Phase 3 | Pending |
 | LEAD-02 | Phase 3 | Pending |
 | UI-01 | Phase 1 | Pending |
-| UI-02 | Phase 1 | Pending |
+| UI-02 | Phase 1 | Complete |
 | UI-03 | Phase 2 | Pending |
 | UI-04 | Phase 3 | Pending |
 | UI-05 | Phase 3 | Pending |
-| SEC-01 | Phase 1 | Pending |
+| SEC-01 | Phase 1 | Complete |
 | REL-01 | Phase 2 | Pending |
 | REL-02 | Phase 2 | Pending |
 
@@ -173,4 +173,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after initial definition*
+*Last updated: 2026-03-01 after 01-01 plan completion*

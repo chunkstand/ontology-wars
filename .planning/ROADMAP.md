@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Operator can configure four agent slots (identity, provider/model) and add per-agent API keys and optional prompt suffixes.
   3. Title and Setup screens are reachable and API keys are not persisted beyond the current session.
 **Plans**: 4 plans
-- [ ] 01-01-PLAN.md — Setup Wizard & Session Context
+- [x] 01-01-PLAN.md — Setup Wizard & Session Context
 - [ ] 01-02-PLAN.md — Dataset Selection UI
 - [ ] 01-03-PLAN.md — Agent Configuration UI
 - [ ] 01-04-PLAN.md — Review & Launch Flow
@@ -60,6 +60,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Setup & Dataset Selection | 0/4 | Ready to execute | - |
+| 1. Setup & Dataset Selection | 1/4 | In Progress | 2026-03-01 |
 | 2. Arena Execution & Scoring | 0/TBD | Not started | - |
 | 3. Delivery & Session Results | 0/TBD | Not started | - |

@@ -130,46 +130,46 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | TBD | Pending |
-| DATA-02 | TBD | Pending |
-| DATA-03 | TBD | Pending |
-| AGENT-01 | TBD | Pending |
-| AGENT-02 | TBD | Pending |
-| AGENT-03 | TBD | Pending |
-| MATCH-01 | TBD | Pending |
-| MATCH-02 | TBD | Pending |
-| MATCH-03 | TBD | Pending |
-| BUILD-01 | TBD | Pending |
-| BUILD-02 | TBD | Pending |
-| BUILD-03 | TBD | Pending |
-| ATTK-01 | TBD | Pending |
-| ATTK-02 | TBD | Pending |
-| ATTK-03 | TBD | Pending |
-| INT-01 | TBD | Pending |
-| INT-02 | TBD | Pending |
-| INT-03 | TBD | Pending |
-| SCORE-01 | TBD | Pending |
-| SCORE-02 | TBD | Pending |
-| SCORE-03 | TBD | Pending |
-| CARD-01 | TBD | Pending |
-| CARD-02 | TBD | Pending |
-| HOOK-01 | TBD | Pending |
-| HOOK-02 | TBD | Pending |
-| LEAD-01 | TBD | Pending |
-| LEAD-02 | TBD | Pending |
-| UI-01 | TBD | Pending |
-| UI-02 | TBD | Pending |
-| UI-03 | TBD | Pending |
-| UI-04 | TBD | Pending |
-| UI-05 | TBD | Pending |
-| SEC-01 | TBD | Pending |
-| REL-01 | TBD | Pending |
-| REL-02 | TBD | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| AGENT-01 | Phase 1 | Pending |
+| AGENT-02 | Phase 1 | Pending |
+| AGENT-03 | Phase 1 | Pending |
+| MATCH-01 | Phase 2 | Pending |
+| MATCH-02 | Phase 2 | Pending |
+| MATCH-03 | Phase 2 | Pending |
+| BUILD-01 | Phase 2 | Pending |
+| BUILD-02 | Phase 2 | Pending |
+| BUILD-03 | Phase 2 | Pending |
+| ATTK-01 | Phase 2 | Pending |
+| ATTK-02 | Phase 2 | Pending |
+| ATTK-03 | Phase 2 | Pending |
+| INT-01 | Phase 2 | Pending |
+| INT-02 | Phase 2 | Pending |
+| INT-03 | Phase 2 | Pending |
+| SCORE-01 | Phase 2 | Pending |
+| SCORE-02 | Phase 2 | Pending |
+| SCORE-03 | Phase 2 | Pending |
+| CARD-01 | Phase 2 | Pending |
+| CARD-02 | Phase 2 | Pending |
+| HOOK-01 | Phase 3 | Pending |
+| HOOK-02 | Phase 3 | Pending |
+| LEAD-01 | Phase 3 | Pending |
+| LEAD-02 | Phase 3 | Pending |
+| UI-01 | Phase 1 | Pending |
+| UI-02 | Phase 1 | Pending |
+| UI-03 | Phase 2 | Pending |
+| UI-04 | Phase 3 | Pending |
+| UI-05 | Phase 3 | Pending |
+| SEC-01 | Phase 1 | Pending |
+| REL-01 | Phase 2 | Pending |
+| REL-02 | Phase 2 | Pending |
 
 **Coverage:**
-- v1 requirements: 34 total
-- Mapped to phases: 0
-- Unmapped: 34 ⚠️
+- v1 requirements: 35 total
+- Mapped to phases: 35
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-28*

@@ -9,15 +9,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Dataset Library
 
-- [ ] **DATA-01**: Operator can view all curated datasets with name, agency, tier, and sample query
-- [ ] **DATA-02**: Operator can select exactly one dataset per tournament
-- [ ] **DATA-03**: Each dataset includes statutory constraint and workflow stress test trace
+- [x] **DATA-01**: Operator can view all curated datasets with name, agency, tier, and sample query
+- [x] **DATA-02**: Operator can select exactly one dataset per tournament
+- [x] **DATA-03**: Each dataset includes statutory constraint and workflow stress test trace
 
 ### Agent Configuration
 
-- [ ] **AGENT-01**: Operator can configure four agent slots (name, icon, color, provider, model)
-- [ ] **AGENT-02**: Operator can provide API key per agent slot, stored only in session memory
-- [ ] **AGENT-03**: Operator can add an optional system prompt suffix per agent
+- [x] **AGENT-01**: Operator can configure four agent slots (name, icon, color, provider, model)
+- [x] **AGENT-02**: Operator can provide API key per agent slot, stored only in session memory
+- [x] **AGENT-03**: Operator can add an optional system prompt suffix per agent
 
 ### Match Orchestration
 
@@ -66,7 +66,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### UI Screens
 
-- [ ] **UI-01**: Title screen links to Setup, Arena, Leaderboard, and API Docs
+- [x] **UI-01**: Title screen links to Setup, Arena, Leaderboard, and API Docs
 - [x] **UI-02**: Setup screen includes dataset selection, agent configuration, scoring weights, webhook URL
 - [ ] **UI-03**: Arena screen shows live phase indicator, agent cards, terminal logs, scores, and report cards
 - [ ] **UI-04**: Leaderboard screen includes rankings and Vault tab
@@ -130,12 +130,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
-| AGENT-01 | Phase 1 | Pending |
-| AGENT-02 | Phase 1 | Pending |
-| AGENT-03 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
+| DATA-02 | Phase 1 | Complete |
+| DATA-03 | Phase 1 | Complete |
+| AGENT-01 | Phase 1 | Complete |
+| AGENT-02 | Phase 1 | Complete |
+| AGENT-03 | Phase 1 | Complete |
 | MATCH-01 | Phase 2 | Pending |
 | MATCH-02 | Phase 2 | Pending |
 | MATCH-03 | Phase 2 | Pending |
@@ -157,7 +157,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOOK-02 | Phase 3 | Pending |
 | LEAD-01 | Phase 3 | Pending |
 | LEAD-02 | Phase 3 | Pending |
-| UI-01 | Phase 1 | Pending |
+| UI-01 | Phase 1 | Complete |
 | UI-02 | Phase 1 | Complete |
 | UI-03 | Phase 2 | Pending |
 | UI-04 | Phase 3 | Pending |

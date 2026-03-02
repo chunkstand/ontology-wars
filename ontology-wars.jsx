@@ -348,10 +348,17 @@ Rules:
 // ── HELPERS ────────────────────────────────────────────────────
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function callClaude(messages, system, maxTokens = 2000) {
+async function callClaude(messages, system, maxTokens = 2000, apiKey = null) {
+  const headers = { 
+    "Content-Type": "application/json",
+    "anthropic-version": "2023-06-01"
+  };
+  if (apiKey) {
+    headers["x-api-key"] = apiKey;
+  }
   const res = await fetch(ANTHROPIC_API, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages }),
   });
   const data = await res.json();
@@ -440,6 +447,7 @@ export default function OntologyWars() {
   const [screen, setScreen] = useState("title"); // title | lobby | arena | results | leaderboard | setup
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [selectedAgents, setSelectedAgents] = useState([0, 1]);
+  const [preconfiguredAgents, setPreconfiguredAgents] = useState(null); // For wizard launch
   const [battleState, setBattleState] = useState(null);
   const [leaderboard, setLeaderboard] = useState([
     { agent: "PALANTIR-7", challenge: "PERMIT ROOKIE", score: 94, tokens: 470, time: 48 },
@@ -451,9 +459,10 @@ export default function OntologyWars() {
   const canvasRef = useRef();
   useParticles(canvasRef, screen === "title");
 
-  const startBattle = useCallback(async () => {
+  const startBattle = useCallback(async (overrideAgents = null) => {
     const challenge = selectedChallenge;
-    const agents = selectedAgents.map(i => AGENT_PERSONAS[i]);
+    // Use overrideAgents if provided (from wizard), otherwise use preconfiguredAgents or selectedAgents
+    const agents = overrideAgents || preconfiguredAgents || selectedAgents.map(i => AGENT_PERSONAS[i]);
     setScreen("arena");
 
     const initial = agents.map(a => ({
@@ -487,8 +496,9 @@ export default function OntologyWars() {
         try {
           const raw = await callClaude(
             [{ role: "user", content: AGENT_ONTOLOGY_PROMPT(challenge.dataset, challenge) }],
-            agent.style,
-            3000
+            (agent.style || agent.persona?.style || "") + (agent.promptSuffix || agent.persona?.promptSuffix || ""),
+            3000,
+            agent.apiKey || agent.persona?.apiKey || null
           );
           ontology = parseJSON(raw);
         } catch (e) {
@@ -686,7 +696,14 @@ export default function OntologyWars() {
         pointerEvents: "none", zIndex: 1000,
       }} />
 
-      {screen === "title" && <TitleScreen canvasRef={canvasRef} onEnter={() => setScreen("lobby")} />}
+      {screen === "title" && <TitleScreen 
+        canvasRef={canvasRef} 
+        onEnter={() => setScreen("lobby")} 
+        onSetup={() => setScreen("setup")}
+        onArena={() => setScreen("lobby")}
+        onLeaderboard={() => setScreen("leaderboard")}
+        onApiDocs={() => console.log("API Docs: Coming soon")}
+      />}
       {screen === "lobby" && (
         <LobbyScreen
           challenges={CHALLENGES}
@@ -716,6 +733,14 @@ export default function OntologyWars() {
       {screen === "setup" && (
         <SetupWizard
           onComplete={() => setScreen("lobby")}
+          onLaunch={(dataset, configuredAgents) => {
+            // Set the selected challenge in main state
+            setSelectedChallenge(dataset);
+            // Set screen to arena
+            setScreen("arena");
+            // Trigger the battle with configured agents
+            startBattle(configuredAgents);
+          }}
         />
       )}
     </div>
@@ -819,14 +844,17 @@ function StepSidebar({ currentStep, onNavigate }) {
 // ══════════════════════════════════════════════════════════════
 // SETUP WIZARD CONTAINER
 // ══════════════════════════════════════════════════════════════
-function SetupWizard({ onComplete }) {
+function SetupWizard({ onComplete, onLaunch }) {
   const {
     selectedDataset,
     setSelectedDataset,
+    agents,
     selectedAgentIds,
     setSelectedAgentIds,
     agentApiKeys,
     setAgentApiKeys,
+    agentPromptSuffixes,
+    setAgentPromptSuffixes,
     webhookUrl,
     setWebhookUrl,
     currentStep,
@@ -837,7 +865,18 @@ function SetupWizard({ onComplete }) {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete();
+      // On final step, use onLaunch if provided, otherwise onComplete
+      if (onLaunch) {
+        // Pass configured agents data from TournamentContext
+        const configuredAgents = selectedAgentIds.map(idx => ({
+          ...agents[idx],
+          apiKey: agentApiKeys[idx] || "",
+          promptSuffix: agentPromptSuffixes[idx] || "",
+        }));
+        onLaunch(selectedDataset, configuredAgents);
+      } else {
+        onComplete();
+      }
     }
   };
 
@@ -1615,8 +1654,59 @@ function ReviewStep({ selectedDataset, selectedAgentIds, webhookUrl }) {
                 <span style={{ color: agents[idx].color }}>{agents[idx].icon}</span>
                 <span style={{ fontSize: 10, color: C.text }}>{agents[idx].name}</span>
                 {agentApiKeys[idx] && <span style={{ fontSize: 8, color: C.green }}>✓</span>}
+                <span style={{ fontSize: 8, color: C.muted }}>anthropic</span>
+                <span style={{ fontSize: 8, color: C.dim }}>sonnet</span>
               </div>
             ))}
+          </div>
+        </div>
+        
+        {/* Tournament bracket preview */}
+        <div style={{ background: C.panel, border: `1px solid ${C.border}`, padding: 16 }}>
+          <div style={{ fontSize: 10, letterSpacing: 3, color: C.accent, marginBottom: 12 }}>TOURNAMENT BRACKET</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 0" }}>
+            {selectedAgentIds.length >= 2 ? (
+              <>
+                {/* Semifinals */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ 
+                    background: `${agents[selectedAgentIds[0]]?.color || C.dim}22`, 
+                    border: `1px solid ${agents[selectedAgentIds[0]]?.color || C.dim}`,
+                    padding: "8px 12px", borderRadius: 4, fontSize: 9, color: C.text,
+                    minWidth: 100, textAlign: "center"
+                  }}>
+                    {agents[selectedAgentIds[0]]?.name || "Agent 1"}
+                  </div>
+                  <div style={{ 
+                    background: `${agents[selectedAgentIds[1]]?.color || C.dim}22`, 
+                    border: `1px solid ${agents[selectedAgentIds[1]]?.color || C.dim}`,
+                    padding: "8px 12px", borderRadius: 4, fontSize: 9, color: C.text,
+                    minWidth: 100, textAlign: "center"
+                  }}>
+                    {agents[selectedAgentIds[1]]?.name || "Agent 2"}
+                  </div>
+                </div>
+                {/* VS */}
+                <div style={{ fontSize: 10, color: C.muted, writingMode: "vertical-rl", textOrientation: "mixed" }}>SEMIFINALS</div>
+                {/* Connector */}
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 4 }}>
+                  <div style={{ width: 30, height: 1, background: C.border }} />
+                  <div style={{ width: 30, height: 1, background: C.border }} />
+                </div>
+                {/* Final */}
+                <div style={{ 
+                  background: `${C.gold}22`, 
+                  border: `1px solid ${C.gold}`,
+                  padding: "12px 20px", borderRadius: 4, fontSize: 10, color: C.gold,
+                  textAlign: "center", minWidth: 100
+                }}>
+                  <div style={{ marginBottom: 4 }}>🏆 FINAL</div>
+                  <div style={{ fontSize: 8, color: C.muted }}>Winner takes all</div>
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 10, color: C.muted }}>Need 2+ agents for bracket</div>
+            )}
           </div>
         </div>
         
@@ -1667,7 +1757,7 @@ function LaunchStep() {
 // ══════════════════════════════════════════════════════════════
 // TITLE SCREEN
 // ══════════════════════════════════════════════════════════════
-function TitleScreen({ canvasRef, onEnter }) {
+function TitleScreen({ canvasRef, onEnter, onSetup, onArena, onLeaderboard, onApiDocs }) {
   const [blink, setBlink] = useState(true);
   useEffect(() => {
     const t = setInterval(() => setBlink(b => !b), 500);
@@ -1727,6 +1817,42 @@ function TitleScreen({ canvasRef, onEnter }) {
         <button className="btn btn-gold" onClick={onEnter} style={{ fontSize: 14, padding: "14px 48px", letterSpacing: 4 }}>
           <span>ENTER ARENA</span>
         </button>
+
+        {/* Navigation links */}
+        <div style={{ marginTop: 32, display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap" }}>
+          <button 
+            onClick={onSetup}
+            style={{ background: "none", border: "none", color: C.muted, fontSize: 11, letterSpacing: 2, cursor: "pointer", padding: "8px 16px", textDecoration: "none", transition: "color 0.2s" }}
+            onMouseEnter={e => e.target.style.color = C.accent}
+            onMouseLeave={e => e.target.style.color = C.muted}
+          >
+            ◈ SETUP
+          </button>
+          <button 
+            onClick={onArena}
+            style={{ background: "none", border: "none", color: C.muted, fontSize: 11, letterSpacing: 2, cursor: "pointer", padding: "8px 16px", textDecoration: "none", transition: "color 0.2s" }}
+            onMouseEnter={e => e.target.style.color = C.accent}
+            onMouseLeave={e => e.target.style.color = C.muted}
+          >
+            ⬡ ARENA
+          </button>
+          <button 
+            onClick={onLeaderboard}
+            style={{ background: "none", border: "none", color: C.muted, fontSize: 11, letterSpacing: 2, cursor: "pointer", padding: "8px 16px", textDecoration: "none", transition: "color 0.2s" }}
+            onMouseEnter={e => e.target.style.color = C.accent}
+            onMouseLeave={e => e.target.style.color = C.muted}
+          >
+            🏆 LEADERBOARD
+          </button>
+          <button 
+            onClick={onApiDocs}
+            style={{ background: "none", border: "none", color: C.muted, fontSize: 11, letterSpacing: 2, cursor: "pointer", padding: "8px 16px", textDecoration: "none", transition: "color 0.2s" }}
+            onMouseEnter={e => e.target.style.color = C.accent}
+            onMouseLeave={e => e.target.style.color = C.muted}
+          >
+            📖 API DOCS
+          </button>
+        </div>
 
         <div style={{ marginTop: 48, display: "flex", gap: 32, justifyContent: "center" }}>
           {AGENT_PERSONAS.map(a => (

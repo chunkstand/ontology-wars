@@ -1,5 +1,21 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 
+// ── PALETTE ──────────────────────────────────────────────────
+const C = {
+  bg: "#050810",
+  panel: "#0a0f1e",
+  border: "#1a2540",
+  accent: "#00d4ff",
+  gold: "#ffd700",
+  green: "#00ff88",
+  red: "#ff3355",
+  purple: "#a855f7",
+  orange: "#ff6b35",
+  dim: "#4a5568",
+  text: "#e2e8f0",
+  muted: "#64748b",
+};
+
 // ============================================================
 // ONTOLOGY WARS — AI Agent Competitive Ontology Arena
 // Standing Framework × Palantir Ontology Architect
@@ -71,21 +87,6 @@ function TournamentProvider({ children }) {
 const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-20250514";
 
-// ── PALETTE ──────────────────────────────────────────────────
-const C = {
-  bg: "#050810",
-  panel: "#0a0f1e",
-  border: "#1a2540",
-  accent: "#00d4ff",
-  gold: "#ffd700",
-  green: "#00ff88",
-  red: "#ff3355",
-  purple: "#a855f7",
-  orange: "#ff6b35",
-  dim: "#4a5568",
-  text: "#e2e8f0",
-  muted: "#64748b",
-};
 
 // ── CHALLENGE DATASETS ────────────────────────────────────────
 const CHALLENGES = [

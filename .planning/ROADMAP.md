@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 01-01-PLAN.md — Setup Wizard & Session Context
 - [x] 01-02-PLAN.md — Dataset Selection UI
 - [x] 01-03-PLAN.md — Agent Configuration UI
-- [ ] 01-04-PLAN.md — Review & Launch Flow
+- [x] 01-04-PLAN.md — Review & Launch Flow
 
 ### Phase 2: Arena Execution & Scoring
 **Goal**: Operators can run a full 4-agent tournament through Build/Attack/Interrogate with reliable scoring and report cards.
@@ -60,6 +60,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Setup & Dataset Selection | 3/4 | In Progress|  |
+| 1. Setup & Dataset Selection | 4/4 | Complete | 2026-03-02 |
 | 2. Arena Execution & Scoring | 0/TBD | Not started | - |
 | 3. Delivery & Session Results | 0/TBD | Not started | - |
